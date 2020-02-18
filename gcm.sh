@@ -226,36 +226,36 @@ _gcm_build()
 {
     if [ -z "$GCM_PROJ" ]; then
         echo "Not in a project.";
-        exit 1;
+        return 1;
     fi
     if [ -z "$GCM_BRANCH" ]; then
         echo "Not on a branch.";
-        exit 1;
+        return 1;
     fi
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
     ./build.sh
     local rc=$?;
     _gcm_popd
-    exit $rc;
+    return $rc;
 }
 
 _gcm_test()
 {
     if [ -z "$GCM_PROJ" ]; then
         echo "Not in a project.";
-        exit 1;
+        return 1;
     fi
     if [ -z "$GCM_BRANCH" ]; then
         echo "Not on a branch.";
-        exit 1;
+        return 1;
     fi
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
     ./test.sh
     local rc=$?
     _gcm_popd
-    exit $rc;
+    return $rc;
 }
 
 _gcm_help()
