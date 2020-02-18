@@ -63,7 +63,7 @@ gcm()
             fi
             local proj=$2;
             local branch=$3;
-            _gcm_newbranch "$2" "$3";
+            _gcm_newbranch "$proj" "$branch";
             return $?;;
         "enter-branch")
             if [ $# -ne 3 ]; then
@@ -72,7 +72,16 @@ gcm()
             fi
             local proj=$2;
             local branch=$3;
-            _gcm_enterbranch "$2" "$3";
+            _gcm_enterbranch "$proj" "$branch";
+            return $?;;
+        "close-branch")
+            if [ $# -ne 3 ]; then
+                echo "close-branch expects 2 arguments.";
+                return 1;
+            fi
+            local proj=$2;
+            local branch=$3;
+            _gcm_closebranch "$proj" "$branch";
             return $?;;
         "build")
             if [ $# -ne 1 ]; then
@@ -99,7 +108,7 @@ gcm()
 _gcm_completion()
 {
     if [ ${#COMP_WORDS[@]} -eq 2 ]; then
-        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch build test help" ${COMP_WORDS[1]}));
+        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch close-branch build test help" ${COMP_WORDS[1]}));
         return 0;
     fi
     if [ ${#COMP_WORDS[@]} -eq 3 ]; then
@@ -115,6 +124,9 @@ _gcm_completion()
             "enter-branch")
                 COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
                 return 0;;
+            "close-branch")
+                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                return 0;;
             *)
                 return 0;;
         esac
@@ -122,6 +134,9 @@ _gcm_completion()
     if [ ${#COMP_WORDS[@]} -eq 4 ]; then
         case ${COMP_WORDS[1]} in
             "enter-branch")
+                COMPREPLY=($(compgen -W $(_gcm_lsbranch ${COMP_WORDS[2]}) ${COMP_WORDS[3]}));
+                return 0;;
+            "close-branch")
                 COMPREPLY=($(compgen -W $(_gcm_lsbranch ${COMP_WORDS[2]}) ${COMP_WORDS[3]}));
                 return 0;;
             *)
@@ -265,6 +280,28 @@ _gcm_enterbranch()
             cd "$GCM_DIR/proj/$proj/branch/open/$branch";
             GCM_PROJ=$proj;
             GCM_BRANCH=$branch;
+            return 0;
+        else
+            echo "\"$branch\" is not a branch in \"$proj\"";
+            return 1;
+        fi
+    else
+        echo "\"$proj\" is not a project.";
+        return 1;
+    fi
+}
+
+_gcm_closebranch()
+{
+    local proj=$1;
+    local branch=$2;
+
+    if _gcm_isproj "$proj"; then
+        if _gcm_isbranch "$proj" "$branch"; then
+            _gcm_pushd "$GCM_DIR/proj/$proj/branch/open"
+            tar -czvf "../closed/$branch.tar.gz" "$branch";
+            rm -fR "$branch";
+            _gcm_popd
             return 0;
         else
             echo "\"$branch\" is not a branch in \"$proj\"";

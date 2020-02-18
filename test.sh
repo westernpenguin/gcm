@@ -168,6 +168,32 @@ if [ $(echo "$RES" | grep -e "modified test" | wc -l) != "1" ]; then
 fi
 
 #------------------------------------------------------------------------------
+# Test project branch close
+#------------------------------------------------------------------------------
+echo "Testing branch closing";
+gcm close-branch test-proj test-branch
+if [ $? -ne 0 ]; then
+    echo "gcm close-branch failed."
+    exit 1;
+fi
+cd "$GCM_DIR/proj/test-proj/branch/open";
+if [ -d test-branch ]; then
+    echo "Failed to remove branch directory."
+    exit 1;
+fi
+cd ../closed;
+if [ ! -f test-branch.tar.gz ]; then
+    echo "Failed to create branch archive.";
+    exit 1;
+fi
+tar -xzf test-branch.tar.gz;
+if [ ! -d test-branch ]; then
+    echo "Tar extraction failed.";
+    exit 1;
+fi
+rm -fR test-branch;
+
+#------------------------------------------------------------------------------
 # Cleanup.
 #------------------------------------------------------------------------------
 echo "All tests executed successfully.";
