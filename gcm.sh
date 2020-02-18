@@ -73,7 +73,21 @@ gcm()
             local proj=$2;
             local branch=$3;
             _gcm_enterbranch "$2" "$3";
-            _return $?;;
+            return $?;;
+        "build")
+            if [ $# -ne 1 ]; then
+                echo "build expects 0 arguments.";
+                return 1;
+            fi
+            _gcm_build;
+            return $?;;
+        "test")
+            if [ $# -ne 1 ]; then
+                echo "test expects 0 arguments.";
+                return 1;
+            fi
+            _gcm_test;
+            return $?;;
         "help") 
             _gcm_help;
             return $?;;
@@ -107,9 +121,9 @@ _gcm_isproj()
 _gcm_isbranch()
 {
     local proj=$1;
-    local branch=$1;
+    local branch=$2;
 
-    if [ -d "$GCM_DIR/proj/$proj/branch/open/$1" ]; then
+    if [ -d "$GCM_DIR/proj/$proj/branch/open/$branch" ]; then
         return 0;
     else
         return 1;
@@ -135,8 +149,22 @@ _gcm_newproj()
         echo "Failed to create project directory.";
         local rc=1;
     else
+        touch "$proj/gcmrc";
+        mkdir -p "$proj/skel";
         mkdir -p "$proj/branch/open";
         mkdir -p "$proj/branch/closed";
+        mkdir -p "$proj/repo";
+        _gcm_pushd "$proj/repo";
+        git init . 1>/dev/null
+        _gcm_popd
+        _gcm_pushd "$proj/skel";
+        touch "gcmrc";
+        echo "#!/bin/bash" > build.sh;
+        chmod +x build.sh;
+        echo "#!/bin/bash" > test.sh;
+        chmod +x test.sh;
+        ln -s "$GCM_DIR/proj/$proj/repo" repo
+        _gcm_popd
     fi
 
     _gcm_popd;
@@ -149,6 +177,7 @@ _gcm_enterproj()
 
     if _gcm_isproj "$proj"; then
         cd "$GCM_DIR/proj/$proj";
+        GCM_PROJ=$proj
         return 0;
     else
         echo "\"$proj\" is not a project.";
@@ -163,15 +192,13 @@ _gcm_newbranch()
 
     if _gcm_isproj "$proj"; then
         _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
-        mkdir $branch;
+        cp -R ../../skel $branch;
         _gcm_popd;
         return 0;
     else
         echo "\"$proj\" is not a project.";
         return 1;
     fi
-
-    return 0;
 }
 
 _gcm_enterbranch()
@@ -180,8 +207,10 @@ _gcm_enterbranch()
     local branch=$2;
 
     if _gcm_isproj "$proj"; then
-        if _gcm_isbranch "$branch"; then
+        if _gcm_isbranch "$proj" "$branch"; then
             cd "$GCM_DIR/proj/$proj/branch/open/$branch";
+            GCM_PROJ=$proj;
+            GCM_BRANCH=$branch;
             return 0;
         else
             echo "\"$branch\" is not a branch in \"$proj\"";
@@ -193,8 +222,45 @@ _gcm_enterbranch()
     fi
 }
 
+_gcm_build()
+{
+    if [ -z "$GCM_PROJ" ]; then
+        echo "Not in a project.";
+        exit 1;
+    fi
+    if [ -z "$GCM_BRANCH" ]; then
+        echo "Not on a branch.";
+        exit 1;
+    fi
+    local rc=0;
+    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
+    ./build.sh
+    local rc=$?;
+    _gcm_popd
+    exit $rc;
+}
+
+_gcm_test()
+{
+    if [ -z "$GCM_PROJ" ]; then
+        echo "Not in a project.";
+        exit 1;
+    fi
+    if [ -z "$GCM_BRANCH" ]; then
+        echo "Not on a branch.";
+        exit 1;
+    fi
+    local rc=0;
+    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
+    ./test.sh
+    local rc=$?
+    _gcm_popd
+    exit $rc;
+}
+
 _gcm_help()
 {
     echo "Behold, a help prompt";
     return 0;
 }
+
