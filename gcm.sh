@@ -96,6 +96,60 @@ gcm()
             return 1;;
     esac
 }
+_gcm_completion()
+{
+    if [ ${#COMP_WORDS[@]} -eq 2 ]; then
+        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch build test help" ${COMP_WORDS[1]}));
+        return 0;
+    fi
+    if [ ${#COMP_WORDS[@]} -eq 3 ]; then
+        case ${COMP_WORDS[1]} in
+            "new-proj")
+                return 0;;
+            "enter-proj")
+                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                return 0;;
+            "new-branch")
+                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                return 0;;
+            "enter-branch")
+                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                return 0;;
+            *)
+                return 0;;
+        esac
+    fi
+    if [ ${#COMP_WORDS[@]} -eq 4 ]; then
+        case ${COMP_WORDS[1]} in
+            "enter-branch")
+                COMPREPLY=($(compgen -W $(_gcm_lsbranch ${COMP_WORDS[2]}) ${COMP_WORDS[3]}));
+                return 0;;
+            *)
+                return 0;;
+        esac
+    fi
+}
+complete -F _gcm_completion gcm;
+
+_gcm_lsproj()
+{
+    _gcm_pushd "$GCM_DIR/proj";
+    ls -1 --color=none;
+    _gcm_popd;
+    return 0;
+}
+
+_gcm_lsbranch()
+{
+    local proj=$1;
+    if [ ! -d "$GCM_DIR/proj/$proj/branch" ]; then
+        return 1;
+    fi
+    _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
+    ls -1 --color=none;
+    _gcm_popd;
+    return 0;
+}
 
 _gcm_pushd()
 {
