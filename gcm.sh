@@ -324,7 +324,7 @@ _gcm_build()
         return 1;
     fi
     local rc=0;
-    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
+    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
     ./build.sh
     local rc=$?;
     _gcm_popd
@@ -342,7 +342,7 @@ _gcm_test()
         return 1;
     fi
     local rc=0;
-    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/$GCM_BRANCH";
+    _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
     ./test.sh
     local rc=$?
     _gcm_popd
