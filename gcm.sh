@@ -225,7 +225,7 @@ _gcm_newproj()
         echo "Failed to create project directory.";
         local rc=1;
     else
-        touch "$proj/gcmrc";
+        echo "master" > "$proj/branch_start";
         mkdir -p "$proj/skel";
         mkdir -p "$proj/branch/open";
         mkdir -p "$proj/branch/closed";
@@ -257,10 +257,10 @@ _gcm_enterproj()
         unset GCM_BRANCH;
 
         if [ $GCM_SET_PS -ne 0 ]; then
-            PS1="\`if [ \$? = 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
+            PS1="\`if [ \$? -eq 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
             PS1+="\e[0;31m[$GCM_PROJ]\e[0m ";
             PS1+="\`echo \${PWD#\$GCM_DIR/proj/}\` ";
-            PS1+="> ";
+            PS1+="\n> ";
         fi
 
         return 0;
@@ -276,7 +276,11 @@ _gcm_newbranch()
     local branch=$2;
 
     if _gcm_isproj "$proj"; then
-        _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
+        _gcm_pushd "$GCM_DIR/proj/$proj";
+        local branch_start=$(cat branch_start);
+        cd repo;
+        git branch $branch $branch_start
+        cd ../branch/open;
         cp -R ../../skel $branch;
         _gcm_popd;
         return 0;
@@ -297,11 +301,18 @@ _gcm_enterbranch()
             GCM_PROJ=$proj;
             GCM_BRANCH=$branch;
 
+            cd repo;
+            git checkout $branch;
+            cd ..;
+
+            . gcmrc
+
             if [ $GCM_SET_PS -ne 0 ]; then
-                PS1="\`if [ \$? = 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
+                PS1="\`if [ \$? -eq 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
                 PS1+="\e[0;36m[$GCM_PROJ:$GCM_BRANCH]\e[0m ";
                 PS1+="\`echo \${PWD#\$GCM_DIR/proj/$GCM_PROJ/branch/open/}\` ";
-                PS1+="> ";
+                PS1+="\`if [ \$(git rev-parse --is-inside-work-tree) = \"true\" ]; then echo \e[0\;35m[git:\$(git rev-parse --abbrev-ref HEAD)]\e[0m; fi\` "
+                PS1+="\n> ";
             fi
 
             return 0;

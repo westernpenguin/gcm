@@ -79,14 +79,11 @@ if [ ! -x "$GCM_DIR/proj/test-proj/skel/test.sh" ]; then
     exit 1;
 fi
 echo 'echo modified test' >> "$GCM_DIR/proj/test-proj/skel/test.sh"
-if [ ! -f "$GCM_DIR/proj/test-proj/gcmrc" ]; then
-    echo "Failed to create project configuration file.";
-    exit 1;
-fi
 if [ ! -f "$GCM_DIR/proj/test-proj/skel/gcmrc" ]; then
     echo "Failed to create project branch skeleton configuration file.";
     exit 1;
 fi
+echo "TEST_PROJ_VAR=1" >> "$GCM_DIR/proj/test-proj/skel/gcmrc"
 if [ ! -d "$GCM_DIR/proj/test-proj/repo" ]; then
     echo "Failed to create project branch git repository directory.";
     exit 1;
@@ -138,6 +135,10 @@ if [ $? -ne 0 ]; then
     echo "gcm enter-branch failed.";
     exit 1;
 fi
+if [ -z $TEST_PROJ_VAR ]; then
+    echo "gcmrc was not sourced.";
+    exit 1;
+fi
 if [ $(pwd) != $(realpath "$GCM_DIR/proj/test-proj/branch/open/test-branch") ]; then
     echo "Went into the wrong directory.";
     exit 1;
@@ -146,6 +147,12 @@ if [ ! -d repo/.git ]; then
     echo "Repo is broken.";
     exit 1;
 fi
+cd repo;
+if [ $(git rev-parse --abbrev-ref HEAD) != "test-branch" ]; then
+    echo "Not on expected branch.";
+    exit 1;
+fi
+cd ..;
 RES=$(gcm build)
 if [ $? -ne 0 ]; then
     echo "$RES";
