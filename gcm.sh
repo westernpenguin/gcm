@@ -116,16 +116,16 @@ _gcm_completion()
             "new-proj")
                 return 0;;
             "enter-proj")
-                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
             "new-branch")
-                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
             "enter-branch")
-                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
             "close-branch")
-                COMPREPLY=($(compgen -W $(_gcm_lsproj) ${COMP_WORDS[2]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
             *)
                 return 0;;
@@ -134,10 +134,10 @@ _gcm_completion()
     if [ ${#COMP_WORDS[@]} -eq 4 ]; then
         case ${COMP_WORDS[1]} in
             "enter-branch")
-                COMPREPLY=($(compgen -W $(_gcm_lsbranch ${COMP_WORDS[2]}) ${COMP_WORDS[3]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsbranch ${COMP_WORDS[2]})" ${COMP_WORDS[3]}));
                 return 0;;
             "close-branch")
-                COMPREPLY=($(compgen -W $(_gcm_lsbranch ${COMP_WORDS[2]}) ${COMP_WORDS[3]}));
+                COMPREPLY=($(compgen -W "$(_gcm_lsbranch ${COMP_WORDS[2]})" ${COMP_WORDS[3]}));
                 return 0;;
             *)
                 return 0;;
