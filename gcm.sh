@@ -302,7 +302,10 @@ _gcm_enterbranch()
             GCM_BRANCH=$branch;
 
             cd repo;
-            git checkout $branch;
+            git checkout -q $branch;
+            if [ $? -ne 0 ]; then
+                echo "Failed to checkout branch $branch."
+            fi
             cd ..;
 
             . gcmrc
@@ -311,7 +314,7 @@ _gcm_enterbranch()
                 PS1="\`if [ \$? -eq 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
                 PS1+="\e[0;36m[$GCM_PROJ:$GCM_BRANCH]\e[0m ";
                 PS1+="\`echo \${PWD#\$GCM_DIR/proj/$GCM_PROJ/branch/open/}\` ";
-                PS1+="\`if [ \$(git rev-parse --is-inside-work-tree) = \"true\" ]; then echo \e[0\;35m[git:\$(git rev-parse --abbrev-ref HEAD)]\e[0m; fi\` "
+                PS1+="\`if [ ! -z \$(git rev-parse --is-inside-work-tree 2>/dev/null) ]; then echo \e[0\;35m[git:\$(git rev-parse --abbrev-ref HEAD)]\e[0m; fi\` "
                 PS1+="\n> ";
             fi
 
