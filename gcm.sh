@@ -20,6 +20,13 @@ if [ ! -d "$GCM_DIR" ]; then
 fi
 
 #------------------------------------------------------------------------------
+# Set the GCM_SET_PS environment variable if not already done.
+#------------------------------------------------------------------------------
+if [ -z "$GCM_SET_PS" ]; then
+    GCM_SET_PS=0;
+fi
+
+#------------------------------------------------------------------------------
 # At this point assume the world is sane.  Create subdirectories if they don't
 # exist.
 #------------------------------------------------------------------------------
@@ -247,6 +254,15 @@ _gcm_enterproj()
     if _gcm_isproj "$proj"; then
         cd "$GCM_DIR/proj/$proj";
         GCM_PROJ=$proj
+        unset GCM_BRANCH;
+
+        if [ $GCM_SET_PS -ne 0 ]; then
+            PS1="\`if [ \$? = 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
+            PS1+="\e[0;31m[$GCM_PROJ]\e[0m ";
+            PS1+="\`echo \${PWD#\$GCM_DIR/proj/}\` ";
+            PS1+="> ";
+        fi
+
         return 0;
     else
         echo "\"$proj\" is not a project.";
@@ -280,6 +296,14 @@ _gcm_enterbranch()
             cd "$GCM_DIR/proj/$proj/branch/open/$branch";
             GCM_PROJ=$proj;
             GCM_BRANCH=$branch;
+
+            if [ $GCM_SET_PS -ne 0 ]; then
+                PS1="\`if [ \$? = 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
+                PS1+="\e[0;36m[$GCM_PROJ:$GCM_BRANCH]\e[0m ";
+                PS1+="\`echo \${PWD#\$GCM_DIR/proj/$GCM_PROJ/branch/open/}\` ";
+                PS1+="> ";
+            fi
+
             return 0;
         else
             echo "\"$branch\" is not a branch in \"$proj\"";
