@@ -104,6 +104,13 @@ gcm()
             fi
             _gcm_test;
             return $?;;
+        "status")
+            if [ $# -ne 1 ]; then
+                echo "status expects 0 arguments.";
+                return 1;
+            fi
+            _gcm_status;
+            return $?;;
         "help") 
             _gcm_help;
             return $?;;
@@ -115,7 +122,7 @@ gcm()
 _gcm_completion()
 {
     if [ ${#COMP_WORDS[@]} -eq 2 ]; then
-        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch close-branch build test help" ${COMP_WORDS[1]}));
+        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch close-branch build test help status" ${COMP_WORDS[1]}));
         return 0;
     fi
     if [ ${#COMP_WORDS[@]} -eq 3 ]; then
@@ -156,7 +163,7 @@ complete -F _gcm_completion gcm;
 _gcm_lsproj()
 {
     _gcm_pushd "$GCM_DIR/proj";
-    ls -1 --color=none;
+    ls -1 --color=none | sort;
     _gcm_popd;
     return 0;
 }
@@ -168,7 +175,7 @@ _gcm_lsbranch()
         return 1;
     fi
     _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
-    ls -1 --color=none;
+    ls -1 --color=none | sort;
     _gcm_popd;
     return 0;
 }
@@ -385,6 +392,24 @@ _gcm_test()
     local rc=$?
     _gcm_popd
     return $rc;
+}
+
+_gcm_status()
+{
+    for proj in $(_gcm_lsproj); do
+        echo "$proj"
+        _gcm_pushd "$GCM_DIR/proj/$proj/repo";
+        local active_branch=$(git rev-parse --abbrev-ref HEAD)
+        _gcm_popd
+        for branch in $(_gcm_lsbranch $proj); do
+            if [ $branch = $active_branch ]; then
+                local A="*";
+            else
+                local A=" ";
+            fi
+            echo " $A[?] $branch";
+        done
+    done
 }
 
 _gcm_help()
