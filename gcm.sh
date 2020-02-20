@@ -400,15 +400,23 @@ _gcm_status()
         echo "$proj"
         _gcm_pushd "$GCM_DIR/proj/$proj/repo";
         local active_branch=$(git rev-parse --abbrev-ref HEAD)
-        _gcm_popd
         for branch in $(_gcm_lsbranch $proj); do
             if [ $branch = $active_branch ]; then
                 local A="*";
             else
                 local A=" ";
             fi
-            echo " $A[?] $branch";
+            local desc=$(git config branch.$branch.description | head -n 1)
+            if [ ! -z "$desc" ]; then
+                local D="[$desc]";
+            else
+                local D="[no description]";
+            fi
+            # TODO: Put in the state of build and testing
+            local B="[?]";
+            echo " $A$B $branch $D";
         done
+        _gcm_popd
     done
 }
 
