@@ -411,8 +411,12 @@ _gcm_test()
 _gcm_status()
 {
     for proj in $(_gcm_lsproj); do
-        echo -e "\e[36;1m$proj\e[0m"
         _gcm_pushd "$GCM_DIR/proj/$proj/repo";
+        local dirty="\e[32m[clean]\e[0m";
+        if [ $(git status --porcelain=v1 --untracked-files=no | wc -l) -gt 0 ]; then
+            local dirty="\e[31;1m[dirty]\e[0m";
+        fi
+        echo -e "\e[36;1m$proj\e[0m $dirty";
         local active_branch=$(git rev-parse --abbrev-ref HEAD)
         cd ../branch/open;
         for branch in $(_gcm_lsbranch $proj); do
