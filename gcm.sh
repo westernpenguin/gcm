@@ -370,8 +370,12 @@ _gcm_build()
     fi
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
+    rm -f .passed .failed .built
     ./build.sh
     local rc=$?;
+    if [ $rc -eq 0 ]; then
+	touch .built;
+    fi
     _gcm_popd
     return $rc;
 }
@@ -388,8 +392,14 @@ _gcm_test()
     fi
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
+    rm -f .passed .failed
     ./test.sh
     local rc=$?
+    if [ $rc -eq 0 ]; then
+	touch .passed;
+    else
+	touch .failed;
+    fi
     _gcm_popd
     return $rc;
 }
@@ -397,24 +407,37 @@ _gcm_test()
 _gcm_status()
 {
     for proj in $(_gcm_lsproj); do
-        echo "$proj"
+        echo -e "\e[36;1m$proj\e[0m"
         _gcm_pushd "$GCM_DIR/proj/$proj/repo";
         local active_branch=$(git rev-parse --abbrev-ref HEAD)
+	cd ../branch/open;
         for branch in $(_gcm_lsbranch $proj); do
+	    cd "$branch";
             if [ $branch = $active_branch ]; then
                 local A="*";
             else
                 local A=" ";
             fi
+	    cd repo;
             local desc=$(git config branch.$branch.description | head -n 1)
+	    cd ..;
             if [ ! -z "$desc" ]; then
-                local D="[$desc]";
+                local D="\e[37m[$desc]\e[0m";
             else
-                local D="[no description]";
+                local D="\e[90m[no description]\e[0m";
             fi
-            # TODO: Put in the state of build and testing
-            local B="[?]";
-            echo " $A$B $branch $D";
+            local B="\e[33m[?]\e[0m";
+	    if [ -f ".built" ]; then
+		local B="\e[34;1m[B]\e[0m";
+		if [ -f ".passed" ]; then
+		    local B="\e[32;1m[P]\e[0m";
+		fi
+		if [ -f ".failed" ]; then
+		    local B="\e[31;1m[F]\e[0m";
+		fi
+            fi
+            echo -e " $A$B $branch $D";
+	    cd ..;
         done
         _gcm_popd
     done
