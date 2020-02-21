@@ -243,8 +243,12 @@ _gcm_newproj()
         _gcm_pushd "$proj/skel";
         touch "gcmrc";
         echo "#!/bin/bash" > build.sh;
+        echo "set -x" >> build.sh;
+        echo "set -e" >> build.sh;
         chmod +x build.sh;
         echo "#!/bin/bash" > test.sh;
+        echo "set -x" >> test.sh;
+        echo "set -e" >> test.sh;
         chmod +x test.sh;
         ln -s "$GCM_DIR/proj/$proj/repo" repo
         _gcm_popd
