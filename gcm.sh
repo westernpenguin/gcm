@@ -128,6 +128,11 @@ gcm()
             return 1;;
     esac
 }
+
+#==============================================================================
+# _gcm_completion
+#   Implementation of autocomplete for the gcm function.
+#==============================================================================
 _gcm_completion()
 {
     if [ ${#COMP_WORDS[@]} -eq 2 ]; then
@@ -169,6 +174,10 @@ _gcm_completion()
 }
 complete -F _gcm_completion gcm;
 
+#==============================================================================
+# _gcm_lsproj
+#   Lists the current projects in gcm
+#==============================================================================
 _gcm_lsproj()
 {
     _gcm_pushd "$GCM_DIR/proj";
@@ -177,6 +186,10 @@ _gcm_lsproj()
     return 0;
 }
 
+#==============================================================================
+# _gcm_lsbranch projname
+#   Lists the current branches in the given project in gcm
+#==============================================================================
 _gcm_lsbranch()
 {
     local proj=$1;
@@ -189,16 +202,29 @@ _gcm_lsbranch()
     return 0;
 }
 
+#==============================================================================
+# _gcm_pushd dir
+#   pushd, but without feedback
+#==============================================================================
 _gcm_pushd()
 {
     pushd "$1" &>/dev/null;
 }
 
+#==============================================================================
+# _gcm_popd
+#   popd, but without feedback
+#==============================================================================
 _gcm_popd()
 {
     popd &>/dev/null;
 }
 
+#==============================================================================
+# _gcm_isproj projname
+#   Returns 0 if the given project name is a project in gcm.  Return 1
+#   otherwise.
+#==============================================================================
 _gcm_isproj()
 {
     local proj=$1;
@@ -210,6 +236,11 @@ _gcm_isproj()
     fi
 }
 
+#==============================================================================
+# _gcm_isbranch projname branchname
+#   Returns 0 if the given branch name is a gcm branch in the given project.
+#   Returns 1 otherwise.
+#==============================================================================
 _gcm_isbranch()
 {
     local proj=$1;
@@ -222,6 +253,10 @@ _gcm_isbranch()
     fi
 }
 
+#==============================================================================
+# _gcm_newproj projname
+#   Creates a new project with the given name.
+#==============================================================================
 _gcm_newproj()
 {
     local proj=$1;
@@ -267,6 +302,10 @@ _gcm_newproj()
     return $rc;
 }
 
+#==============================================================================
+# _gcm_enterproj projname
+#   Go to the project directory.  Used for editing projects.
+#==============================================================================
 _gcm_enterproj()
 {
     local proj=$1;
@@ -290,6 +329,10 @@ _gcm_enterproj()
     fi
 }
 
+#==============================================================================
+# _gcm_newbranch projname branchname
+#   Create a new gcm branch with the given name in the given project.
+#==============================================================================
 _gcm_newbranch()
 {
     local proj=$1;
@@ -310,6 +353,49 @@ _gcm_newbranch()
     fi
 }
 
+#==============================================================================
+# _gcm_currbranch projname
+#   Prints the current branch in git in the given project.
+#==============================================================================
+_gcm_currbranch()
+{
+    local $proj=$1;
+
+    if _gcm_isproj $proj; then
+        _gcm_pushd $GCM_DIR/proj/$proj/repo;
+        git rev-parse --abbrev-ref HEAD;
+        _gcm_popd;
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+#==============================================================================
+# _gcm_projisclean projname
+#   Returns 0 if the givne project's git repository is clean; 1 otherwise.
+#==============================================================================
+_gcm_projisclean()
+{
+    local $proj=$1;
+
+    if _gcm_isproj $proj; then
+        local res=0;
+        _gcm_pushd $GCM_DIR/proj/$proj/repo;
+        if [ $(git status --porcelain=v1 --untracked-files=no | wc -l) -gt 0 ]; then
+            res=1;
+        fi
+        _gcm_popd;
+        return $res;
+    else
+        return 1;
+    fi
+}
+
+#==============================================================================
+# _gcm_setbranchps
+#   Setup the PS variables for a branch.
+#==============================================================================
 _gcm_setbranchps()
 {
     if [ $GCM_SET_PS -ne 0 ]; then
@@ -321,6 +407,11 @@ _gcm_setbranchps()
     fi
 }
 
+#==============================================================================
+# _gcm_enterbranch projname branchname
+#   Go to the given gcm branch directory in the given project, but do not
+#   change the git branch.
+#==============================================================================
 _gcm_enterbranch()
 {
     local proj=$1;
@@ -347,6 +438,11 @@ _gcm_enterbranch()
     fi
 }
 
+#==============================================================================
+# _gcm_contbranch projname branchname
+#   Continue working on the given gcm branch.  Changes the directory and
+#   changes the git branch.
+#==============================================================================
 _gcm_contbranch()
 {
     local proj=$1;
@@ -380,6 +476,10 @@ _gcm_contbranch()
     fi
 }
 
+#==============================================================================
+# _gcm_closebranch projname branchname
+#   Archive the given gcm branch in the given project. 
+#==============================================================================
 _gcm_closebranch()
 {
     local proj=$1;
@@ -402,6 +502,10 @@ _gcm_closebranch()
     fi
 }
 
+#==============================================================================
+# _gcm_build
+#   Short form command to build when already in a branch.
+#==============================================================================
 _gcm_build()
 {
     if [ -z "$GCM_PROJ" ]; then
@@ -424,6 +528,10 @@ _gcm_build()
     return $rc;
 }
 
+#==============================================================================
+# _gcm_test
+#   Short form command to test when already in a branch.
+#==============================================================================
 _gcm_test()
 {
     if [ -z "$GCM_PROJ" ]; then
@@ -448,17 +556,21 @@ _gcm_test()
     return $rc;
 }
 
+#==============================================================================
+# _gcm_status
+#   Print the status of all gcm projects and branches.
+#==============================================================================
 _gcm_status()
 {
     for proj in $(_gcm_lsproj); do
-        _gcm_pushd "$GCM_DIR/proj/$proj/repo";
-        local dirty="\e[32m[clean]\e[0m";
-        if [ $(git status --porcelain=v1 --untracked-files=no | wc -l) -gt 0 ]; then
+        if _gcm_projisclean $proj; then
+            local dirty="\e[32m[clean]\e[0m";
+        else
             local dirty="\e[31;1m[dirty]\e[0m";
         fi
         echo -e "\e[36;1m$proj\e[0m $dirty";
-        local active_branch=$(git rev-parse --abbrev-ref HEAD)
-        cd ../branch/open;
+        local active_branch=$(_gcm_currbranch $proj)
+        _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
         for branch in $(_gcm_lsbranch $proj); do
             cd "$branch";
             if [ $branch = $active_branch ]; then
@@ -491,6 +603,10 @@ _gcm_status()
     done
 }
 
+#==============================================================================
+# _gcm_help
+#   Print the gcm help information.
+#==============================================================================
 _gcm_help()
 {
     echo "Behold, a help prompt";
