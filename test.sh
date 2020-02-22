@@ -130,9 +130,9 @@ fi
 # Test project branch entry
 #------------------------------------------------------------------------------
 echo "Testing project branch entry."
-gcm enter-branch test-proj test-branch
+gcm cont-branch test-proj test-branch
 if [ $? -ne 0 ]; then
-    echo "gcm enter-branch failed.";
+    echo "gcm cont-branch failed.";
     exit 1;
 fi
 if [ -z $TEST_PROJ_VAR ]; then

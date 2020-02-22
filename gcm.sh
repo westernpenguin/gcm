@@ -81,6 +81,15 @@ gcm()
             local branch=$3;
             _gcm_enterbranch "$proj" "$branch";
             return $?;;
+        "cont-branch")
+            if [ $# -ne 3 ]; then
+                echo "cont-branch expects 2 arguments.";
+                return 1;
+            fi
+            local proj=$2;
+            local branch=$3;
+            _gcm_contbranch "$proj" "$branch";
+            return $?;;
         "close-branch")
             if [ $# -ne 3 ]; then
                 echo "close-branch expects 2 arguments.";
@@ -122,7 +131,7 @@ gcm()
 _gcm_completion()
 {
     if [ ${#COMP_WORDS[@]} -eq 2 ]; then
-        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch close-branch build test help status" ${COMP_WORDS[1]}));
+        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch cont-branch close-branch build test help status" ${COMP_WORDS[1]}));
         return 0;
     fi
     if [ ${#COMP_WORDS[@]} -eq 3 ]; then
@@ -135,7 +144,7 @@ _gcm_completion()
             "new-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
-            "enter-branch")
+            "cont-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
             "close-branch")
@@ -147,7 +156,7 @@ _gcm_completion()
     fi
     if [ ${#COMP_WORDS[@]} -eq 4 ]; then
         case ${COMP_WORDS[1]} in
-            "enter-branch")
+            "cont-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsbranch ${COMP_WORDS[2]})" ${COMP_WORDS[3]}));
                 return 0;;
             "close-branch")
@@ -301,7 +310,44 @@ _gcm_newbranch()
     fi
 }
 
+_gcm_setbranchps()
+{
+    if [ $GCM_SET_PS -ne 0 ]; then
+        PS1="\`if [ \$? -eq 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
+        PS1+="\e[0;36m[$GCM_PROJ:$GCM_BRANCH]\e[0m ";
+        PS1+="\`echo \${PWD#\$GCM_DIR/proj/$GCM_PROJ/branch/open/}\` ";
+        PS1+="\`if [ ! -z \$(git rev-parse --is-inside-work-tree 2>/dev/null) ]; then echo \e[0\;35m[git:\$(git rev-parse --abbrev-ref HEAD)]\e[0m; fi\` "
+        PS1+="\n> ";
+    fi
+}
+
 _gcm_enterbranch()
+{
+    local proj=$1;
+    local branch=$2;
+
+    if _gcm_isproj "$proj"; then
+        if _gcm_isbranch "$proj" "$branch"; then
+            cd "$GCM_DIR/proj/$proj/branch/open/$branch";
+            GCM_PROJ=$proj;
+            GCM_BRANCH=$branch;
+
+            . gcmrc
+            
+            _gcm_setbranchps;
+
+            return 0;
+        else
+            echo "\"$branch\" is not a branch in \"$proj\"";
+            return 1;
+        fi
+    else
+        echo "\"$proj\" is not a project.";
+        return 1;
+    fi
+}
+
+_gcm_contbranch()
 {
     local proj=$1;
     local branch=$2;
@@ -321,13 +367,7 @@ _gcm_enterbranch()
 
             . gcmrc
 
-            if [ $GCM_SET_PS -ne 0 ]; then
-                PS1="\`if [ \$? -eq 0 ]; then echo \e[0\;32m\:\)\e[0m; else echo \e[0\;31m\:\(\e[0m; fi\` ";
-                PS1+="\e[0;36m[$GCM_PROJ:$GCM_BRANCH]\e[0m ";
-                PS1+="\`echo \${PWD#\$GCM_DIR/proj/$GCM_PROJ/branch/open/}\` ";
-                PS1+="\`if [ ! -z \$(git rev-parse --is-inside-work-tree 2>/dev/null) ]; then echo \e[0\;35m[git:\$(git rev-parse --abbrev-ref HEAD)]\e[0m; fi\` "
-                PS1+="\n> ";
-            fi
+            _gcm_setbranchps;
 
             return 0;
         else
