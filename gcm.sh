@@ -581,6 +581,25 @@ _gcm_test()
 }
 
 #==============================================================================
+# _gcm_branchstart projname
+#   Prints the name of the preferred branch start point for the given
+#   project.
+#==============================================================================
+_gcm_branchstart()
+{
+    local proj=$1;
+
+    if _gcm_isproj $proj; then
+        _gcm_pushd $GCM_DIR/proj/$proj
+        cat branch_start
+        _gcm_popd
+        return 0;
+    else
+        return 1;
+    fi
+}
+
+#==============================================================================
 # _gcm_status
 #   Print the status of all gcm projects and branches.
 #==============================================================================
@@ -593,7 +612,8 @@ _gcm_status()
             local dirty="\e[31;1m[dirty]\e[0m";
         fi
         echo -e "\e[36;1m$proj\e[0m $dirty";
-        local active_branch=$(_gcm_currbranch $proj)
+        local active_branch=$(_gcm_currbranch $proj);
+        local branch_start=$(_gcm_branchstart $proj);
         _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
         for branch in $(_gcm_lsbranch $proj); do
             cd "$branch";
@@ -604,6 +624,7 @@ _gcm_status()
             fi
             cd repo;
             local desc=$(git config branch.$branch.description | head -n 1)
+            local behind_ahead=$(git rev-list --left-right --count $branch_start...$branch)
             cd ..;
             if [ ! -z "$desc" ]; then
                 local D="\e[37m[$desc]\e[0m";
@@ -620,7 +641,12 @@ _gcm_status()
                     local B="\e[31;1m[F]\e[0m";
                 fi
             fi
-            echo -e " $A$B $branch $D";
+            local BA=$(echo "$behind_ahead" | sed -e "s/\([0-9]\+\)\s\+\([0-9]\+\)/[B:\1;A:\2]/g");
+            # A -- Active
+            # B -- Build status
+            # D -- Description
+            # BA -- Behind/ahead
+            echo -e " $A$B $branch $D $BA";
             cd ..;
         done
         _gcm_popd
