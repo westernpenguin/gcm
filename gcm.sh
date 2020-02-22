@@ -16,6 +16,7 @@ if [ ! -d "$GCM_DIR" ]; then
     mkdir -p "$GCM_DIR";
     if [ $? -ne 0 ]; then
         echo "Failed to make $GCM_DIR.  Engaging improbability drive.";
+        return 1;
     fi
 fi
 
@@ -380,7 +381,7 @@ _gcm_currbranch()
 #==============================================================================
 _gcm_projisclean()
 {
-    local $proj=$1;
+    local proj=$1;
 
     if _gcm_isproj $proj; then
         local res=0;
@@ -663,3 +664,4 @@ _gcm_help()
     return 0;
 }
 
+GCM_SRCED=1;
