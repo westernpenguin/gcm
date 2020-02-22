@@ -149,6 +149,9 @@ _gcm_completion()
             "new-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
+            "enter-branch")
+                COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
+                return 0;;
             "cont-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsproj)" ${COMP_WORDS[2]}));
                 return 0;;
@@ -359,7 +362,7 @@ _gcm_newbranch()
 #==============================================================================
 _gcm_currbranch()
 {
-    local $proj=$1;
+    local proj=$1;
 
     if _gcm_isproj $proj; then
         _gcm_pushd $GCM_DIR/proj/$proj/repo;
@@ -450,6 +453,13 @@ _gcm_contbranch()
 
     if _gcm_isproj "$proj"; then
         if _gcm_isbranch "$proj" "$branch"; then
+            if ! _gcm_projisclean "$proj"; then
+                if [ $(_gcm_currbranch "$proj") != "$branch" ]; then
+                    echo "Unsaved changes exist in branch $(_gcm_currbranch $proj).";
+                    echo "Please commit or stash these changes before changing branches.";
+                    return 1;
+                fi
+            fi
             cd "$GCM_DIR/proj/$proj/branch/open/$branch";
             GCM_PROJ=$proj;
             GCM_BRANCH=$branch;
@@ -516,6 +526,13 @@ _gcm_build()
         echo "Not on a branch.";
         return 1;
     fi
+
+    if [ $(_gcm_currbranch "$GCM_PROJ") != "$GCM_BRANCH" ]; then
+        echo "Git branch is $(_gcm_currbranch $GCM_PROJ).";
+        echo "Please move to branch $GCM_BRANCH before building.";
+        return 1;
+    fi
+
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
     rm -f .passed .failed .built
@@ -542,6 +559,13 @@ _gcm_test()
         echo "Not on a branch.";
         return 1;
     fi
+
+    if [ $(_gcm_currbranch "$GCM_PROJ") != "$GCM_BRANCH" ]; then
+        echo "Git branch is $(_gcm_currbranch $GCM_PROJ).";
+        echo "Please move to branch $GCM_BRANCH before testing.";
+        return 1;
+    fi
+
     local rc=0;
     _gcm_pushd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
     rm -f .passed .failed
