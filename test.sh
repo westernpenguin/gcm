@@ -8,197 +8,162 @@ fi
 GCM_FILE=$1
 
 #------------------------------------------------------------------------------
+# Helper routines for testing
+#------------------------------------------------------------------------------
+check_dir()
+{
+    local dir=$1;
+
+    echo -n "? Ensuring that $dir exists...";
+
+    if [ ! -d "$dir" ]; then
+        echo "FAIL";
+        exit 1;
+    else
+        echo "PASS";
+        return 0;
+    fi
+}
+
+check_not_dir()
+{
+    local dir=$1;
+
+    echo -n "? Ensuring that $dir DOESN'T exist...";
+
+    if [ -d "$dir" ]; then
+        echo "FAIL";
+        exit 1;
+    else
+        echo "PASS";
+        return 0;
+    fi
+}
+
+check_file()
+{
+    local file=$1;
+
+    echo -n "? Ensuring that $file exists...";
+
+    if [ ! -f "$file" ]; then
+        echo "FAIL";
+        exit 1;
+    else
+        echo "PASS";
+        return 0;
+    fi
+}
+
+check_not_file()
+{
+    local file=$1;
+
+    echo -n "? Ensuring that $file DOESN'T exist...";
+
+    if [ -f "$file" ]; then
+        echo "FAIL";
+        exit 1;
+    else
+        echo "PASS";
+        return 0;
+    fi
+}
+
+do_and_check()
+{
+    echo "> $@";
+    eval "$@";
+    if [ $? -ne 0 ]; then
+        echo "Command failed.";
+        exit 1;
+    fi
+    return 0;
+}
+
+print_test_section()
+{
+    local section=$1;
+    echo "=== $section ===";
+    return 0;
+}
+
+#------------------------------------------------------------------------------
 # Source the GCM file with GCM_DIR in current directory.  Check that the
 # directory exists.
 #------------------------------------------------------------------------------
 GCM_DIR=$(pwd)/gcm_test
 
-if [ -d "$GCM_DIR" ]; then
-    echo "GCM_DIR already exists!";
-    exit 1;
-fi
-
-. "$GCM_FILE"
-
-echo "Ensuring $GCM_DIR exists.";
-if [ ! -d "$GCM_DIR" ]; then
-    echo "Failed to create $GCM_DIR";
-    exit 1;
-fi
-
-echo "Ensuring $GCM_DIR/proj exists.";
-if [ ! -d "$GCM_DIR/proj" ]; then
-    echo "Failed to create $GCM_DIR/proj";
-    exit 1;
-fi
+print_test_section "loading gcm";
+check_not_dir "$GCM_DIR";
+do_and_check source "$GCM_FILE";
+check_dir "$GCM_DIR";
+check_dir "$GCM_DIR/proj";
 
 #------------------------------------------------------------------------------
 # Test project creation.
 #------------------------------------------------------------------------------
-echo "Testing new project creation."
-gcm new-proj test-proj
-if [ $? -ne 0 ]; then
-    echo "gcm new-proj failed.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj" ]; then
-    echo "Failed to create project directory.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/branch" ]; then
-    echo "Failed to create project branch directory.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/branch/open" ]; then
-    echo "Failed to create project branch open directory.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/branch/closed" ]; then
-    echo "Failed to create project branch closed directory.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/skel" ]; then
-    echo "Failed to create project branch skeleton directory.";
-    exit 1;
-fi
-if [ ! -f "$GCM_DIR/proj/test-proj/skel/build.sh" ]; then
-    echo "Failed to create project branch skeleton build script.";
-    exit 1;
-fi
-if [ ! -x "$GCM_DIR/proj/test-proj/skel/build.sh" ]; then
-    echo "Project branch skeleton build script is not executable.";
-    exit 1;
-fi
-echo 'echo modified build' >> "$GCM_DIR/proj/test-proj/skel/build.sh"
-if [ ! -f "$GCM_DIR/proj/test-proj/skel/test.sh" ]; then
-    echo "Failed to create project branch skeleton test script.";
-    exit 1;
-fi
-if [ ! -x "$GCM_DIR/proj/test-proj/skel/test.sh" ]; then
-    echo "Project branch skeleton test script is not executable.";
-    exit 1;
-fi
-echo 'echo modified test' >> "$GCM_DIR/proj/test-proj/skel/test.sh"
-if [ ! -f "$GCM_DIR/proj/test-proj/skel/gcmrc" ]; then
-    echo "Failed to create project branch skeleton configuration file.";
-    exit 1;
-fi
-echo "TEST_PROJ_VAR=1" >> "$GCM_DIR/proj/test-proj/skel/gcmrc"
-if [ ! -d "$GCM_DIR/proj/test-proj/repo" ]; then
-    echo "Failed to create project branch git repository directory.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/repo/.git" ]; then
-    echo "Failed to initialize project branch git repository.";
-    exit 1;
-fi
-pushd "$GCM_DIR/proj/test-proj/repo" &>/dev/null
-git remote add origin https://github.com/westernpenguin/gcm.git
-git fetch
-git checkout master
-popd &>/dev/null
+print_test_section "new project creation";
+do_and_check gcm new-proj test-proj;
+check_dir "$GCM_DIR/proj/test-proj";
+check_dir "$GCM_DIR/proj/test-proj/branch";
+check_dir "$GCM_DIR/proj/test-proj/branch/open";
+check_dir "$GCM_DIR/proj/test-proj/branch/closed";
+check_dir "$GCM_DIR/proj/test-proj/skel";
+check_file "$GCM_DIR/proj/test-proj/skel/build.sh";
+do_and_check echo 'echo modified build' >> "$GCM_DIR/proj/test-proj/skel/build.sh"
+check_file "$GCM_DIR/proj/test-proj/skel/test.sh";
+do_and_check echo 'echo modified test' >> "$GCM_DIR/proj/test-proj/skel/test.sh"
+check_file "$GCM_DIR/proj/test-proj/skel/gcmrc";
+do_and_check echo "TEST_PROJ_VAR=1" >> "$GCM_DIR/proj/test-proj/skel/gcmrc"
+check_dir "$GCM_DIR/proj/test-proj/repo";
+check_dir "$GCM_DIR/proj/test-proj/repo/.git";
+do_and_check pushd "$GCM_DIR/proj/test-proj/repo"
+do_and_check git remote add origin https://github.com/westernpenguin/gcm.git
+do_and_check git fetch
+do_and_check git checkout master
+do_and_check popd
 
 #------------------------------------------------------------------------------
 # Test project entry.
 #------------------------------------------------------------------------------
-echo "Testing project entry."
-gcm enter-proj test-proj
-if [ $? -ne 0 ]; then
-    echo "gcm enter-proj failed.";
-    exit 1;
-fi
-if [ $(pwd) != $(realpath "$GCM_DIR/proj/test-proj") ]; then
-    echo "Went into the wrong directory.";
-    exit 1;
-fi
+print_test_section "project entry";
+do_and_check gcm enter-proj test-proj
+do_and_check [ $(pwd) = $(realpath "$GCM_DIR/proj/test-proj") ]
 
 #------------------------------------------------------------------------------
 # Test project branch creation.
 #------------------------------------------------------------------------------
-echo "Testing new project branch creation."
-gcm new-branch test-proj test-branch
-if [ $? -ne 0 ]; then
-    echo "gcm new-branch failed.";
-    exit 1;
-fi
-if [ ! -d "$GCM_DIR/proj/test-proj/branch/open/test-branch" ]; then
-    echo "Failed to create project branch directory.";
-    exit 1;
-fi
+print_test_section "branch creation";
+do_and_check gcm new-branch test-proj test-branch
+check_dir "$GCM_DIR/proj/test-proj/branch/open/test-branch";
 
 #------------------------------------------------------------------------------
 # Test project branch entry
 #------------------------------------------------------------------------------
-echo "Testing project branch entry."
-gcm cont-branch test-proj test-branch
-if [ $? -ne 0 ]; then
-    echo "gcm cont-branch failed.";
-    exit 1;
-fi
-if [ -z $TEST_PROJ_VAR ]; then
-    echo "gcmrc was not sourced.";
-    exit 1;
-fi
-if [ $(pwd) != $(realpath "$GCM_DIR/proj/test-proj/branch/open/test-branch") ]; then
-    echo "Went into the wrong directory.";
-    exit 1;
-fi
-if [ ! -d repo/.git ]; then
-    echo "Repo is broken.";
-    exit 1;
-fi
-cd repo;
-if [ $(git rev-parse --abbrev-ref HEAD) != "test-branch" ]; then
-    echo "Not on expected branch.";
-    exit 1;
-fi
-cd ..;
-RES=$(gcm build)
-if [ $? -ne 0 ]; then
-    echo "$RES";
-    echo "gcm build failed.";
-    exit 1
-fi
-if [ $(echo "$RES" | grep -e "modified build" | wc -l) != "1" ]; then
-    echo "Build command did not generate expected output.";
-    exit 1;
-fi
-RES=$(gcm test)
-if [ $? -ne 0 ]; then
-    echo "$RES";
-    echo "gcm test failed.";
-    exit 1
-fi
-if [ $(echo "$RES" | grep -e "modified test" | wc -l) != "1" ]; then
-    echo "Test command did not generate expected output.";
-    exit 1;
-fi
+print_test_section "branch continuation"
+do_and_check gcm cont-branch test-proj test-branch
+do_and_check  [ ! -z $TEST_PROJ_VAR ]
+do_and_check [ $(pwd) = $(realpath "$GCM_DIR/proj/test-proj/branch/open/test-branch") ]
+check_dir "repo/.git"
+do_and_check pushd repo;
+do_and_check [ $(git rev-parse --abbrev-ref HEAD) = "test-branch" ]
+do_and_check popd;
+do_and_check "RES=\"$(gcm build)\"";
+do_and_check [ $(echo "$RES" | grep -e "modified build" | wc -l) -eq 1 ]
+do_and_check "RES=\"$(gcm test)\"";
+do_and_check [ $(echo "$RES" | grep -e "modified test" | wc -l) -eq 1 ]
 
 #------------------------------------------------------------------------------
 # Test project branch close
 #------------------------------------------------------------------------------
-echo "Testing branch closing";
-gcm close-branch test-proj test-branch
-if [ $? -ne 0 ]; then
-    echo "gcm close-branch failed."
-    exit 1;
-fi
-cd "$GCM_DIR/proj/test-proj/branch/open";
-if [ -d test-branch ]; then
-    echo "Failed to remove branch directory."
-    exit 1;
-fi
-cd ../closed;
-if [ ! -f test-branch.tar.gz ]; then
-    echo "Failed to create branch archive.";
-    exit 1;
-fi
-tar -xzf test-branch.tar.gz;
-if [ ! -d test-branch ]; then
-    echo "Tar extraction failed.";
-    exit 1;
-fi
-rm -fR test-branch;
+print_test_section "branch closing";
+do_and_check gcm close-branch test-proj test-branch
+check_not_dir "$GCM_DIR/proj/test-proj/branch/open/test-branch";
+check_file "$GCM_DIR/proj/test-proj/branch/closed/test-branch.tar.gz";
+do_and_check pushd "$GCM_DIR/proj/test-proj/branch/closed";
+do_and_check tar -xzf test-branch.tar.gz;
+do_and_check rm -fR test-branch;
 
 #------------------------------------------------------------------------------
 # Cleanup.
