@@ -165,6 +165,9 @@ _gcm_completion()
     fi
     if [ ${#COMP_WORDS[@]} -eq 4 ]; then
         case ${COMP_WORDS[1]} in
+            "enter-branch")
+                COMPREPLY=($(compgen -W "$(_gcm_lsbranch ${COMP_WORDS[2]})" ${COMP_WORDS[3]}));
+                return 0;;
             "cont-branch")
                 COMPREPLY=($(compgen -W "$(_gcm_lsbranch ${COMP_WORDS[2]})" ${COMP_WORDS[3]}));
                 return 0;;
