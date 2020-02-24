@@ -143,3 +143,13 @@ branch-test()
     _gcm_test;
     return $?;
 }
+
+branch-base()
+{
+    if [ $# -ne 0 ]; then
+        echo "branch-test expects 0 arguments";
+        return 1;
+    fi
+    _gcm_base;
+    return $?;
+}

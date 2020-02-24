@@ -155,6 +155,13 @@ do_and_check "RES=\"$(gcm test)\"";
 do_and_check [ $(echo "$RES" | grep -e "modified test" | wc -l) -eq 1 ]
 
 #------------------------------------------------------------------------------
+# Test moving to base of branch
+#------------------------------------------------------------------------------
+do_and_check cd repo
+do_and_check gcm base
+do_and_check [ $(pwd) = $(realpath "$GCM_DIR/proj/test-proj/branch/open/test-branch") ]
+
+#------------------------------------------------------------------------------
 # Test project branch close
 #------------------------------------------------------------------------------
 print_test_section "branch closing";

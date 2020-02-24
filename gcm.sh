@@ -114,6 +114,13 @@ gcm()
             fi
             _gcm_test;
             return $?;;
+        "base")
+            if [ $# -ne 1 ]; then
+                echo "base expects 0 arguments.";
+                return 1;
+            fi
+            _gcm_base;
+            return $?;;
         "status")
             if [ $# -ne 1 ]; then
                 echo "status expects 0 arguments.";
@@ -137,7 +144,7 @@ gcm()
 _gcm_completion()
 {
     if [ ${#COMP_WORDS[@]} -eq 2 ]; then
-        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch cont-branch close-branch build test help status" ${COMP_WORDS[1]}));
+        COMPREPLY=($(compgen -W "new-proj enter-proj new-branch enter-branch cont-branch close-branch build test base help status" ${COMP_WORDS[1]}));
         return 0;
     fi
     if [ ${#COMP_WORDS[@]} -eq 3 ]; then
@@ -582,6 +589,26 @@ _gcm_test()
     fi
     _gcm_popd
     return $rc;
+}
+
+#==============================================================================
+# _gcm_base
+#   Go to the base of the current branch
+#==============================================================================
+_gcm_base()
+{
+    if [ -z "$GCM_PROJ" ]; then
+        echo "Not in a project.";
+        return 1;
+    fi
+    if [ -z "$GCM_BRANCH" ]; then
+        echo "Not on a branch.";
+        return 1;
+    fi
+
+    cd "$GCM_DIR/proj/$GCM_PROJ/branch/open/$GCM_BRANCH";
+
+    return $?
 }
 
 #==============================================================================
