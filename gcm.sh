@@ -396,7 +396,7 @@ _gcm_projisclean()
     if _gcm_isproj $proj; then
         local res=0;
         _gcm_pushd $GCM_DIR/proj/$proj/repo;
-        if [ $(git status --porcelain=v1 --untracked-files=no | wc -l) -gt 0 ]; then
+        if [ $(git --no-optional-locks status --porcelain=v1 --untracked-files=no | wc -l) -gt 0 ]; then
             res=1;
         fi
         _gcm_popd;
