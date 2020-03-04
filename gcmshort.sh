@@ -22,17 +22,21 @@ if [ -z $GCMSHORT_DEFAULT_PROJ ]; then
     else
         echo "Using project $GCMSHORT_DEFAULT_PROJ.";
     fi
+elif ! _gcm_isproj $GCMSHORT_DEFAULT_PROJ; then
+    echo "$GCMSHORT_DEFAULT_PROJ is not a project.  Stopping load of gcmshort.";
+    return 1;
 fi
 
 #------------------------------------------------------------------------------
 # Load configuration for the branch, but don't change directories.
 #------------------------------------------------------------------------------
-if [ "$(_gcm_currbranch $GCMSHORT_DEFAULT_PROJ)" != "" ]; then
+if [ ! -z $(_gcm_currbranch $GCMSHORT_DEFAULT_PROJ) ]; then
     _gcm_pushd .;
     _gcm_enterbranch $GCMSHORT_DEFAULT_PROJ $(_gcm_currbranch $GCMSHORT_DEFAULT_PROJ);
     _gcm_popd;
 else
     echo "Failed to enter the current branch in $GCMSHORT_DEFAULT_PROJ.";
+    echo "Stopping load of gcmshort.";
     echo "Check your gcm and git status."
     echo "Perhaps you don't have any branches yet?";
     return 1;

@@ -377,8 +377,15 @@ _gcm_currbranch()
 
     if _gcm_isproj $proj; then
         _gcm_pushd $GCM_DIR/proj/$proj/repo;
-        git rev-parse --abbrev-ref HEAD;
+        local RES=$(git rev-parse --abbrev-ref HEAD 2>/dev/null);
         _gcm_popd;
+        if [ -z $RES ]; then
+            return 1;
+        fi
+        if [ $RES == "HEAD" ]; then
+            return 1;
+        fi
+        echo $RES;
         return 0;
     else
         return 1;
