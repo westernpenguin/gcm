@@ -379,6 +379,9 @@ _gcm_currbranch()
         _gcm_pushd $GCM_DIR/proj/$proj/repo;
         local RES=$(git rev-parse --abbrev-ref HEAD 2>/dev/null);
         _gcm_popd;
+        if ! _gcm_isbranch $proj $RES; then
+            return 1;
+        fi
         if [ -z $RES ]; then
             return 1;
         fi

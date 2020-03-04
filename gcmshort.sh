@@ -34,6 +34,11 @@ if [ ! -z $(_gcm_currbranch $GCMSHORT_DEFAULT_PROJ) ]; then
     _gcm_pushd .;
     _gcm_enterbranch $GCMSHORT_DEFAULT_PROJ $(_gcm_currbranch $GCMSHORT_DEFAULT_PROJ);
     _gcm_popd;
+elif [ ! -z "$(_gcm_lsbranch $GCMSHORT_DEFAULT_PROJ)" ]; then
+    echo "Attempting to default to first branch.";
+    _gcm_pushd .;
+    _gcm_enterbranch $GCMSHORT_DEFAULT_PROJ "$(_gcm_lsbranch $GCMSHORT_DEFAULT_PROJ | head -n 1)";
+    _gcm_popd;
 else
     echo "Failed to enter the current branch in $GCMSHORT_DEFAULT_PROJ.";
     echo "Stopping load of gcmshort.";
