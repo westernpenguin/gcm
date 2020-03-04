@@ -658,7 +658,7 @@ _gcm_status()
         _gcm_pushd "$GCM_DIR/proj/$proj/branch/open";
         for branch in $(_gcm_lsbranch $proj); do
             cd "$branch";
-            if [ $branch = $active_branch ]; then
+            if [ $branch = "$active_branch" ]; then
                 local A="*";
             else
                 local A=" ";
