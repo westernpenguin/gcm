@@ -700,7 +700,68 @@ _gcm_status()
 #==============================================================================
 _gcm_help()
 {
-    echo "Behold, a help prompt";
+    cat << EOF
+Git Collateral Manager (GCM)
+usage: gcm <command> [<args>]
+
+In addition to the base gcm commands specified here, if GCMShort has been
+loaded, additional commands are available, which are identified by "GCMShort
+Command" below.  For example, instead of "gcm new-proj foo", "new-proj foo" may
+be used.
+
+Project  Management Commands
+    new-proj <proj_name>
+        Create a new project with the given proj_name.
+        GCMShort Command: new-proj <proj_name>
+    enter-proj <proj_name>
+        Change directory to the project directory with the given proj_name.
+        GCMShort Command: enter-proj <proj_name>
+
+Branch Management Commands
+    new-branch <proj_name> <branch_name>
+        Create a new branch with the given branch_name in the project proj_name.
+        GCMShort Command: new-branch <branch_name>
+    enter-branch <proj_name> <branch_name>
+        Change directory to the branch directory with the given branch_name in
+        project proj_name.  The environment will be modified, but the git branch
+        will not be changed.  This is most useful when an existing build is
+        needed but no development will occur.
+        GCMShort Command: enter-branch <branch_name>
+    cont-branch <proj_name> <branch_name>
+        Change directory to the branch directory with the given branch_name in
+        project proj_name.  The environment will be modified, and the git branch
+        will be changed.  This is most useful when development will occur.
+        GCMShort Command: cont-branch <branch_name>
+    close-branch <proj_name> <branch_name>
+        Close and archive the branch directory with the given branch_name in
+        project proj_name.
+        GCMShort Command: close-branch <branch_name>
+
+In Branch Commands -- Only valid after using cont-branch.
+    build
+        Call build.sh in the branch directory to build the branch.
+        GCMShort Command: branch-build
+    test
+        Call test.sh in the branch directory to test the branch.
+        GCMShort Command: branch-test
+    base
+        Change directory to the root of the branch directory.
+        GCMShort Command: branch-base
+
+Other Commands
+    status
+        Prints a human readable description of the state of GCM and contained
+        git repositories.
+    help
+        Prints this help screen.
+
+See README.md in the GCM installation directory for further information.  As the
+file is written in markdown, an appropriate markup converter such as pandoc is
+recommended:
+    pandoc README.md | lynx -stdin
+      -or-
+    pandoc -t plain README.md | less
+EOF
     return 0;
 }
 
