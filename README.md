@@ -136,6 +136,71 @@ gcm enter-branch foo feature_1
 ```
 At this point, you are free to modify ``gcmrc``, ``build.sh``, and ``test.sh`` in ways that our fitting for your branch in particular.  Remember, these are copies of those files and your changes here won't affect other branches.  This folder is a good place to put any collateral associated with your branch such as toy test cases and notes.  To build from any location, use the command ``gcm build``.  To test from any location, use the command ``gcm clean``.
 ## GCM Command Reference
-TODO
+### Project Management Commands
+#### gcm new-proj \<proj_name\>
+Create a new project with the given ``proj_name``.
+
+*GCMShort Command:* ``new-proj <proj_name>``
+#### gcm enter-proj \<proj_name\>
+Change directory the project directory with the given ``proj_name``.
+
+*GCMShort Command:* ``enter-proj <proj_name>``
+### Branch Management Commands
+#### gcm new-branch \<proj_name\> \<branch_name\>
+Create a new branch with the given ``branch_name`` in the project ``proj_name``.
+
+*GCMShort Command:* ``new-branch <branch_name>``
+#### gcm enter-branch \<proj_name\> \<branch_name\>
+Change directory to the branch directory with the given ``branch_name`` in project ``proj_name``.  The environment will be modified, but the git branch will not be changed.  THis is most useful when an existing build is needed but no development will occur.
+
+*GCMShort Command:* ``enter-branch <branch_name>``
+#### gcm cont-branch \<proj_name\> \<branch_name\>
+Change directory to the branch directory with the given ``branch_name`` in project ``proj_name``.  The environment will be modified and the git branch will be changed.  This is most useful when development will occur.
+
+*GCMShort Command:* ``cont-branch <branch_name>``
+#### gcm close-branch \<proj_name\> \<branch_name\>
+Close and archive the branch directory with the given ``branch_name`` in project ``proj_name``.
+
+*GCMShort Command:* ``close-branch <branch_name>``
+### In Branch Commands
+These commands are only valid after using ``gcm cont-branch``.
+#### gcm build
+Call build.sh in the branch directory to build the branch.
+
+*GCMShort Command:* ``branch-build``
+#### gcm test
+Call test.sh in the branch directory to test the branch.
+
+*GCMShort Command:* ``branch-test``
+#### gcm base
+Change directory to the root of the branch directory.
+
+*GCMShort Command:* ``branch-base``
+### Other Commands
+#### gcm status
+Prints a human readable description of the state of GCM and contained git repositories.
+#### gcm help
+Prints basic usage information.
 ## GCMShort Command Reference
-TODO
+These commands are only available after sourcing ``gcmshort.sh``.
+### Project Management Commands
+#### new-proj \<proj_name\>
+Shorcut for ``gcm new-proj <proj_name>``.  
+#### enter-proj \<proj_name\>
+Shorcut for ``gcm enter-proj <proj_name>``. 
+### Branch Management Commands
+#### new-branch \<branch_name\>
+Shortcut for ``gcm new-branch <curr_proj> <branch_name>``.
+#### enter-branch \<branch_name\>
+Shortcut for ``gcm enter-branch <curr_proj> <branch_name>``.
+#### cont-branch \<branch_name\>
+Shortcut for ``gcm cont-branch <curr_proj> <branch_name>``.
+#### close-branch \<branch_name\>
+Shortcut for ``gcm close-branch <curr_proj> <branch_name>``.
+### In Branch Commands
+#### branch-build
+Shortcut for ``gcm build``.
+#### branch-test
+Shorcut for ``gcm test``.
+#### branch-base
+Shortcut for ``gcm base``.
