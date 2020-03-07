@@ -4,7 +4,7 @@ Git Collateral Manager (gcm) provides bash functions to create git repositories 
 ## Who, why, and how
 Git ~~Crap~~ Collateral Manager is designed for developers who work primarily at the command line, especially when that work is spread across multiple repositories/projects and branches and leaves tons of ~~crap~~ collateral everywhere.
 
-Every project has its own way of being built.  Perhaps you just call `make`; perhaps you call `cmake`; or perhaps you do five different calls with seven environment variables set and with nineteen options passed.  Testing is in all likelihood worse.  So what do we do?  We stick a ton of project specific stuff in our .bashrc and start creating scripts in random places.  We create random directories to house our test inputs and outputs.  Gcm's purpose it to organize that ~~crap~~ collateral such that you can simply type `branch-build` or `branch-test` while controlling how much junk is in your initial environment.
+Every project has its own way of being built.  Perhaps you just call `make`; perhaps you call `cmake`; or perhaps you do five different calls with seven environment variables set and with nineteen options passed.  Testing is in all likelihood worse.  So what do we do?  We stick a ton of project specific stuff in our .bashrc and start creating scripts in random places.  We create random directories to house our test inputs and outputs.  GCM's purpose it to organize that ~~crap~~ collateral such that you can simply type `branch-build` or `branch-test` while controlling how much junk is in your initial environment.
 
 If you already have a system of organization that you actually stick to or don't use bash, this project will probably not be useful to you.  However, if you are like me and always end up with a mess, continue reading.
 ## Installation
@@ -16,6 +16,21 @@ echo ". ~/gcm_repo/gcm.sh" >> ~/.bashrc
 You may also use the GCM_SET_PS variable to allow gcm to override your default PS variables for projects and branches.
 ```
 echo "GCM_SET_PS=1" >> ~/.bashrc
+```
+If this is enabled, after entering a project you will see:
+```
+:) [myproj] myproj
+>
+```
+Where the last return code is indicated through `:)` or `:(`, the project is represented in brackets and the relative directory to the project is shown.  Furthermore, after entering a branch you will see:
+```
+:) [myproj:mybranch] mybranch
+>
+```
+Where the project and branch are represented in brackets and the relative directory to the project is shown.  When in a git repository, you will also see a git position message, representing where HEAD currently is:
+```
+:) [myproj:mybranch] mybranch/repo [git:mybranch]
+>
 ```
 This is enough to get you going.  It provides the `gcm` command along with autocompletion.  However, these commands tend to be very long and very specific.  For example:
 ```
@@ -178,7 +193,32 @@ Change directory to the root of the branch directory.
 *GCMShort Command:* ``branch-base``
 ### Other Commands
 #### gcm status
-Prints a human readable description of the state of GCM and contained git repositories.
+Prints a human readable description of the state of GCM and contained git repositories.  The desciption will be formatted as shown below:
+```
+proj1_name [clean|dirty]
+ *[?|B|P|F] branch1_name [git branch description] [B:n;A:m]
+  [?|B|P|F] branch2_name [git branch description] [B:n;A:m]
+proj2_name [clean|dirty]
+ *[?|B|P|F] branch1_name [git branch description] [B:n;A:m]
+```
+`clean|dirty` represents whether the repository has uncommitted changes.
+
+`*` marks the active git branch.
+
+`?|B|P` represents unknown-state|built|test-passed|test-failed.
+
+`git branch description` will be the description of a branch retrieved from git (see git branch --edit-description).
+
+`B:n;A:m` is the state of the branch relative to the branch point.  B represents behind; A represents ahead; n and m will be appropriate values.
+
+In practice, the result may look like the following:
+```
+proj1 [clean]
+ *[P] feature1 [A good description] [B:2;A:3]
+  [?] master [Pristine] [B:1;A:0]
+proj2 [dirty]
+ *[F] feature1 [Another good description] [B:0;A:1]
+```
 #### gcm help
 Prints basic usage information.
 ## GCMShort Command Reference
